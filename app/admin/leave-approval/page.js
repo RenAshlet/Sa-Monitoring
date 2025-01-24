@@ -1,5 +1,4 @@
 "use client";
-import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import * as Icon from "react-bootstrap-icons";
@@ -7,18 +6,22 @@ import {
   Navbar,
   Nav,
   Container,
-  Table,
   Button,
+  Table,
   Modal,
   Form,
 } from "react-bootstrap";
+import axios from "axios";
 
-const Attendance = () => {
+const LeaveApproval = () => {
   const [adminId, setAdminId] = useState(null);
   const [firstname, setFirstname] = useState(null);
   const [lastname, setLastname] = useState(null);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const router = useRouter();
+
+  const [getSaLeaveRequests, setGetSaLeaveRequests] = useState([]);
+  const [getSaLeaveRequestsById, setGetSaLeaveRequestsById] = useState([]);
 
   useEffect(() => {
     setAdminId(sessionStorage.adminId);
@@ -28,7 +31,7 @@ const Attendance = () => {
 
   useEffect(() => {
     if (adminId !== null) {
-      retrieveAllSaTimeInTrack();
+      retrieveSaLeaveRequests();
     }
   }, [adminId]);
 
@@ -36,65 +39,56 @@ const Attendance = () => {
     setIsSidebarVisible(!isSidebarVisible);
   };
 
-  //--------------- Time-in Approval Modal ---------------//
-  const [date, setDate] = useState("");
-  const [daySched, setDaySched] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [time, setTime] = useState("");
-  const [status, setStatus] = useState("Present");
   const [saFullname, setSaFullname] = useState("");
+  const [date, setDate] = useState("");
+  const [leaveType, setLeaveType] = useState("");
+  const [reason, setReason] = useState("");
   const [approvedStatus, setApprovedStatus] = useState("Approved");
-
-  //--------------- retrieving time-in data ---------------//
-  const [getAllSaTimeIn, setGetAllSaTimeIn] = useState([]);
-  const [getTimeInById, setGetTimeInById] = useState([]);
 
   //--------------- Modal ---------------//
   const [showApprovedModal, setShowApprovedModal] = useState(false);
   const handleCloseModal = () => setShowApprovedModal(false);
   const handleShowModal = () => setShowApprovedModal(true);
 
-  const retrieveAllSaTimeInTrack = async () => {
+  const retrieveSaLeaveRequests = async () => {
     const url = "http://localhost/nextjs/api/sa-monitoring/admin.php";
 
     const response = await axios.get(url, {
       params: {
         json: JSON.stringify({}),
-        operation: "displayAllSaTimeInTrack",
+        operation: "displaySaLeaveRequest",
       },
     });
-    setGetAllSaTimeIn(response.data);
+    setGetSaLeaveRequests(response.data);
     console.log(response.data);
   };
 
-  const retrieveAllSaTimeInTrackById = async (timeInId) => {
+  const retrieveSaLeaveRequestsById = async (leaveId) => {
     const url = "http://localhost/nextjs/api/sa-monitoring/admin.php";
 
-    const jsonData = {
-      timeInId: timeInId,
+    const jsondata = {
+      leaveId: leaveId,
     };
 
     const response = await axios.get(url, {
       params: {
-        json: JSON.stringify(jsonData),
-        operation: "displayAllSaTimeInTrackById",
+        json: JSON.stringify(jsondata),
+        operation: "displaySaLeaveRequestById",
       },
     });
-    setGetTimeInById(response.data);
+    setGetSaLeaveRequestsById(response.data);
+    console.log(response.data);
 
-    const saTimeIn = response.data[0];
-
-    setDate(saTimeIn.formatted_date);
-    setDaySched(saTimeIn.day_name);
-    setStartTime(saTimeIn.time_start);
-    setTime(saTimeIn.time_in);
-    setSaFullname(saTimeIn.sa_fullname);
-    setApprovedStatus("Approved");
-    setStatus(saTimeIn.status === "Absent" ? "Present" : saTimeIn.status);
+    const SaLeave = response.data[0];
+    setSaFullname(SaLeave.sa_fullname);
+    setDate(SaLeave.formatted_date);
+    setLeaveType(SaLeave.leave_type);
+    setReason(SaLeave.reason);
+    setApprovedStatus(SaLeave.approved_status);
   };
 
-  const showModal = (timeInId) => {
-    retrieveAllSaTimeInTrackById(timeInId);
+  const showModal = (leaveId) => {
+    retrieveSaLeaveRequestsById(leaveId);
     handleShowModal(true);
   };
 
@@ -102,16 +96,15 @@ const Attendance = () => {
     const url = "http://localhost/nextjs/api/sa-monitoring/admin.php";
 
     const jsonData = {
-      time_in_id: getTimeInById[0].track_id,
+      leaveId: getSaLeaveRequestsById[0].leave_id,
       approvedStatus: approvedStatus,
-      status: status,
       adminId: adminId,
     };
 
     console.log(jsonData);
 
     const formData = new FormData();
-    formData.append("operation", "TimeInApprove");
+    formData.append("operation", "ApprovedLeaveRequest");
     formData.append("json", JSON.stringify(jsonData));
 
     const response = await axios({
@@ -121,10 +114,10 @@ const Attendance = () => {
     });
 
     if (response.data == 1) {
-      alert("Approval successful!");
-      retrieveAllSaTimeInTrack();
+      alert("Leave Request approved!");
+      retrieveSaLeaveRequests();
     } else {
-      alert("Approval failed! Please try again.");
+      alert("Leave Request Failed!");
     }
   };
 
@@ -184,6 +177,9 @@ const Attendance = () => {
               <Nav.Link href="/admin/attendance" className="text-light">
                 <Icon.ClipboardCheck className="me-2" /> Attendance
               </Nav.Link>
+              <Nav.Link href="/admin/leave-approval" className="text-light">
+                <Icon.Check2Circle className="me-2" /> Leave Approval
+              </Nav.Link>
               <Nav.Link onClick={logout} className="text-light">
                 <Icon.BoxArrowDownRight className="me-2" /> Logout
               </Nav.Link>
@@ -191,102 +187,62 @@ const Attendance = () => {
           )}
         </div>
 
+        {/* Main Content */}
         <Container fluid style={{ flex: 1, padding: "20px" }}>
-          <h2>Attendance Review</h2>
+          <h2>Leave request Approval</h2>
 
-          <Table striped bordered hover responsive className="table-custom">
-            <thead className="table-primary">
+          <Table>
+            <thead>
               <tr>
-                <th>Date</th>
-                <th>Day Schedule</th>
-                <th>Time Start</th>
-                <th>Time End</th>
-                <th>Time-in</th>
-                <th>Time-out</th>
-                <th>Approved Status</th>
-                <th>Status</th>
-                <th>Student Assistant</th>
-                <th>Action</th>
+                <td>Student Assistant</td>
+                <td>Date</td>
+                <td>Leave Type</td>
+                <td>Approved Status</td>
+                <td>Approved By</td>
+                <td>Action</td>
               </tr>
             </thead>
             <tbody>
-              {getAllSaTimeIn.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan="10"
-                    className="text-center"
-                    style={{
-                      color: "red",
-                      fontWeight: "bold",
-                      backgroundColor: "#f8d7da",
-                    }}
-                  >
-                    No data available, please wait...
+              {getSaLeaveRequests.map((saLeaveRequest, index) => (
+                <tr key={index}>
+                  <td>{saLeaveRequest.sa_fullname}</td>
+                  <td>{saLeaveRequest.formatted_date}</td>
+                  <td>{saLeaveRequest.leave_type}</td>
+                  <td>
+                    <span
+                      className={`badge ${
+                        saLeaveRequest.approved_status === "Approved"
+                          ? "bg-success"
+                          : saLeaveRequest.approved_status === "Pending"
+                          ? "bg-warning text-dark"
+                          : "bg-danger"
+                      }`}
+                    >
+                      {saLeaveRequest.approved_status}
+                    </span>
+                  </td>
+                  <td>
+                    {saLeaveRequest.admin_fullname ||
+                      "waiting to be approved..."}
+                  </td>
+                  <td>
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        showModal(saLeaveRequest.leave_id);
+                      }}
+                    >
+                      Approve
+                    </Button>
                   </td>
                 </tr>
-              ) : (
-                getAllSaTimeIn.map((timeIn, index) => {
-                  return (
-                    <tr key={index}>
-                      <td>{timeIn.formatted_date}</td>
-                      <td>{timeIn.day_name}</td>
-                      <td>{timeIn.time_start}</td>
-                      <td>{timeIn.time_end}</td>
-                      <td>{timeIn.time_in}</td>
-                      <td>{timeIn.time_out}</td>
-                      <td>
-                        <span
-                          className={`badge ${
-                            timeIn.approved_status === "Approved"
-                              ? "bg-success"
-                              : timeIn.approved_status === "Pending"
-                              ? "bg-warning text-dark"
-                              : "bg-danger"
-                          }`}
-                        >
-                          {timeIn.approved_status}
-                        </span>
-                      </td>
-                      <td>
-                        <span
-                          className={`badge ${
-                            timeIn.status === "On Time"
-                              ? "bg-success"
-                              : timeIn.status === "Late"
-                              ? "bg-danger"
-                              : "bg-secondary"
-                          }`}
-                        >
-                          {timeIn.status}
-                        </span>
-                      </td>
-                      <td>
-                        {timeIn.sa_fullname?.trim() || (
-                          <span style={{ color: "gray", fontStyle: "italic" }}>
-                            waiting to be approved...
-                          </span>
-                        )}
-                      </td>
-                      <td>
-                        <Button
-                          variant="secondary"
-                          onClick={() => {
-                            showModal(timeIn.track_id);
-                          }}
-                        >
-                          Approve
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
+              ))}
             </tbody>
           </Table>
         </Container>
       </div>
 
-      {/* Modal for time-in approval */}
+      {/* Modal for leave approval */}
       <Modal show={showApprovedModal} onHide={handleCloseModal}>
         <Modal.Header closeButton>
           <Modal.Title>Time-in Approval</Modal.Title>
@@ -295,24 +251,32 @@ const Attendance = () => {
           <Table>
             <tbody>
               <tr>
+                <td>Student Assistant</td>
+                <td>{saFullname}</td>
+              </tr>
+              <tr>
                 <td>Date</td>
                 <td>{date}</td>
               </tr>
               <tr>
-                <td>Day Schedule</td>
-                <td>{daySched}</td>
+                <td>Leave Type</td>
+                <td>{leaveType}</td>
               </tr>
               <tr>
-                <td>Time Start</td>
-                <td>{startTime}</td>
-              </tr>
-              <tr>
-                <td>Time In</td>
-                <td>{time}</td>
-              </tr>
-              <tr>
-                <td>Student Assistant</td>
-                <td>{saFullname}</td>
+                <td>Reason</td>
+                <td>
+                  <Form.Group className="mb-3">
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      placeholder="Enter reason for the leave..."
+                      value={reason}
+                      onChange={(e) => setReason(e.target.value)}
+                      className="rounded border-1"
+                      readOnly
+                    />
+                  </Form.Group>
+                </td>
               </tr>
               <tr>
                 <td>Approved Status</td>
@@ -325,20 +289,6 @@ const Attendance = () => {
                     <option value="Pending">Pending</option>
                     <option value="Approved">Approved</option>
                     <option value="Rejected">Rejected</option>
-                  </Form.Select>
-                </td>
-              </tr>
-              <tr>
-                <td>Status</td>
-                <td>
-                  <Form.Select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    className="mb-3"
-                  >
-                    <option value="Present">Present</option>
-                    <option value="Late">Late</option>
-                    <option value="Absent">Absent</option>
                   </Form.Select>
                 </td>
               </tr>
@@ -364,4 +314,4 @@ const Attendance = () => {
   );
 };
 
-export default Attendance;
+export default LeaveApproval;

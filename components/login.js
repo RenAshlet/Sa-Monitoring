@@ -36,6 +36,7 @@ const Login = () => {
     }
 
     const url = "http://localhost/nextjs/api/sa-monitoring/login.php";
+    //const url = "http://192.168.1.48/nextjs/api/sa-monitoring/login.php";
 
     const jsonData = {
       username: username,

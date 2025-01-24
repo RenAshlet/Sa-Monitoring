@@ -1,26 +1,12 @@
 "use client";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import * as Icon from "react-bootstrap-icons";
-import { Navbar, Nav, Container, Button } from "react-bootstrap";
+import { Navbar, Nav, Button, Container } from "react-bootstrap";
 
-const Dashboard = () => {
-  const [adminId, setAdminId] = useState(null);
-  const [firstname, setFirstname] = useState(null);
-  const [lastname, setLastname] = useState(null);
+const Test = () => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const router = useRouter();
-
-  useEffect(() => {
-    setAdminId(sessionStorage.adminId);
-    setFirstname(sessionStorage.firstname);
-    setLastname(sessionStorage.lastname);
-  });
-
-  useEffect(() => {
-    if (adminId !== null) {
-    }
-  }, [adminId]);
 
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
@@ -29,7 +15,7 @@ const Dashboard = () => {
   const logout = () => {
     const confirmLogout = window.confirm("Are you sure to log out?");
     if (confirmLogout) {
-      sessionStorage.removeItem("adminId");
+      sessionStorage.removeItem("saId");
       sessionStorage.removeItem("firstname");
       sessionStorage.removeItem("lastname");
       router.push("/");
@@ -45,7 +31,7 @@ const Dashboard = () => {
         className="px-3"
       >
         <Navbar.Brand href="#" className="text-light">
-          Admin Page
+          Student Assistant
         </Navbar.Brand>
         <Button
           variant="outline-light"
@@ -54,9 +40,6 @@ const Dashboard = () => {
         >
           {isSidebarVisible ? <Icon.List size={20} /> : <Icon.X size={20} />}
         </Button>
-        <h6 className="ms-auto" style={{ color: "white" }}>
-          {firstname} {lastname}
-        </h6>
       </Navbar>
 
       <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
@@ -73,17 +56,17 @@ const Dashboard = () => {
         >
           {isSidebarVisible && (
             <Nav className="flex-column">
-              <Nav.Link href="/admin/dashboard" className="text-light">
+              <Nav.Link
+                href="/student-assistant/dashboard"
+                className="text-light"
+              >
                 <Icon.Grid className="me-2" /> Dashboard
               </Nav.Link>
-              <Nav.Link href="/admin/create" className="text-light">
-                <Icon.PersonPlus className="me-2" /> Create Assistant
-              </Nav.Link>
-              <Nav.Link href="/admin/attendance" className="text-light">
-                <Icon.ClipboardCheck className="me-2" /> Attendance
-              </Nav.Link>
-              <Nav.Link href="/admin/leave-approval" className="text-light">
-                <Icon.Check2Circle className="me-2" /> Leave Approval
+              <Nav.Link
+                href="/student-assistant/track-time"
+                className="text-light"
+              >
+                <Icon.Stopwatch className="me-2" /> Track Time
               </Nav.Link>
               <Nav.Link onClick={logout} className="text-light">
                 <Icon.BoxArrowDownRight className="me-2" /> Logout
@@ -93,12 +76,13 @@ const Dashboard = () => {
         </div>
 
         {/* Main Content */}
-        <Container fluid style={{ flex: 1, padding: "20px" }}>
-          <h2>Admin Dashboard</h2>
+        <Container style={{ flex: 1, padding: "20px" }}>
+          <h1>Welcome to the Test Page</h1>
+          <p>This is the main content area.</p>
         </Container>
       </div>
     </>
   );
 };
 
-export default Dashboard;
+export default Test;
