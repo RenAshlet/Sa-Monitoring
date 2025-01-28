@@ -1,4 +1,5 @@
 "use client";
+import axios from "axios";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import * as Icon from "react-bootstrap-icons";
@@ -15,14 +16,14 @@ import {
   Modal,
   Table,
 } from "react-bootstrap";
-import axios from "axios";
+import { useLogout } from "@/components/student/logout";
 
 const Leave = () => {
   const [saId, setSaId] = useState(null);
   const [firstname, setFirstname] = useState(null);
   const [lastname, setLastname] = useState(null);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
-  const router = useRouter();
+  const logout = useLogout();
 
   const [leaveType, setLeaveType] = useState("");
   const [customLeaveType, setCustomLeaveType] = useState("");
@@ -129,16 +130,6 @@ const Leave = () => {
     });
     setGetSaLeaveRequests(response.data);
     console.log(response.data);
-  };
-
-  const logout = () => {
-    const confirmLogout = window.confirm("Are you sure to log out?");
-    if (confirmLogout) {
-      sessionStorage.removeItem("saId");
-      sessionStorage.removeItem("firstname");
-      sessionStorage.removeItem("lastname");
-      router.push("/");
-    }
   };
 
   return (

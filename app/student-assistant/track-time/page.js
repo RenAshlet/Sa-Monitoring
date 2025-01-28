@@ -1,6 +1,5 @@
 "use client";
 import axios from "axios";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import * as Icon from "react-bootstrap-icons";
 import {
@@ -12,13 +11,14 @@ import {
   Row,
   Col,
 } from "react-bootstrap";
+import { useLogout } from "@/components/student/logout";
 
 const TrackTime = () => {
   const [saId, setSaId] = useState(null);
   const [firstname, setFirstname] = useState(null);
   const [lastname, setLastname] = useState(null);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
-  const router = useRouter();
+  const logout = useLogout();
 
   const [getSaDutySchedule, setGetSaDutySchedule] = useState([]);
   const [getSaTimeInTrack, setGetSaTimeInTrack] = useState([]);
@@ -162,16 +162,6 @@ const TrackTime = () => {
       }
     } catch (error) {
       alert("Network error. Please try again.");
-    }
-  };
-
-  const logout = () => {
-    const confirmLogout = window.confirm("Are you sure to log out?");
-    if (confirmLogout) {
-      sessionStorage.removeItem("saId");
-      sessionStorage.removeItem("firstname");
-      sessionStorage.removeItem("lastname");
-      router.push("/");
     }
   };
 

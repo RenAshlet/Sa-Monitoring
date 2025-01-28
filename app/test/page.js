@@ -1,50 +1,108 @@
 "use client";
-import React, { useState } from "react";
-import { Navbar, Nav, Button, Container } from "react-bootstrap";
+import axios from "axios";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import * as Icon from "react-bootstrap-icons";
+import { Navbar, Nav, Button, Container, Table } from "react-bootstrap";
 
-const generateTimeSlots = () => {
-  const times = [];
-  let hours = 0;
-  let minutes = 0;
-
-  while (hours < 24) {
-    const amPm = hours < 12 ? "AM" : "PM";
-    const displayHours = hours % 12 || 12; // Convert 0 to 12 for 12-hour format
-    const displayMinutes = minutes.toString().padStart(2, "0");
-
-    times.push({
-      display: `${displayHours}:${displayMinutes} ${amPm}`,
-      value: `${hours.toString().padStart(2, "0")}:${displayMinutes}`, // 24-hour format
-    });
-
-    minutes += 30;
-    if (minutes === 60) {
-      minutes = 0;
-      hours++;
-    }
-  }
-
-  return times;
-};
-
-const Test = () => {
+const Dashboard = () => {
+  const [saId, setSaId] = useState(null);
+  const [firstname, setFirstname] = useState(null);
+  const [lastname, setLastname] = useState(null);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
-  const [selectedTime, setSelectedTime] = useState("");
- 
+  const router = useRouter();
+
+  const [getSaDutySchedule, setGetSaDutySchedule] = useState([]);
+
+  useEffect(() => {
+    setSaId(sessionStorage.saId);
+    setFirstname(sessionStorage.firstname);
+    setLastname(sessionStorage.lastname);
+  }, []);
+
+  useEffect(() => {
+    if (saId !== null) {
+      retrieveSaDutySchedule();
+    }
+  }, [saId]);
 
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
   };
 
-  
+  const retrieveSaDutySchedule = async () => {
+    const url =
+      "http://localhost/nextjs/api/sa-monitoring/studentAssistant.php";
 
-  const handleTimeChange = (e) => {
-    setSelectedTime(e.target.value);
-    console.log(`Selected Time (24-hour format): ${e.target.value}`);
+    //const url = "http://192.168.1.48/nextjs/api/sa-monitoring/studentAssistant.php";
+
+    const jsonData = {
+      saId: saId,
+    };
+
+    const response = await axios.get(url, {
+      params: {
+        json: JSON.stringify(jsonData),
+        operation: "displaySaDutySchedule",
+      },
+    });
+    setGetSaDutySchedule(response.data);
+    //console.log("Student Assistants duty schedule:", response.data);
   };
 
-  const timeSlots = generateTimeSlots();
+  const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+
+  const timeSlots = [
+    "07:00 AM",
+    "08:00 AM",
+    "09:00 AM",
+    "10:00 AM",
+    "11:00 AM",
+    "12:00 PM",
+    "01:00 PM",
+    "02:00 PM",
+    "03:00 PM",
+    "04:00 PM",
+    "05:00 PM",
+  ];
+
+  const isDayScheduled = (day) => {
+    return getSaDutySchedule.some((schedule) => schedule.day_name === day);
+  };
+
+  const isStartTime = (day, time) => {
+    return getSaDutySchedule.some(
+      (schedule) => schedule.day_name === day && schedule.time_start === time
+    );
+  };
+
+  const isEndTime = (day, time) => {
+    return getSaDutySchedule.some((schedule) => {
+      const endTime = schedule.time_end;
+      const timeEnd = endTime === "06:00 PM" ? "05:00 PM" : endTime;
+
+      return schedule.day_name === day && timeEnd === time;
+    });
+  };
+
+  const getFullNameForSchedule = (day, time) => {
+    const schedule = getSaDutySchedule.find(
+      (schedule) =>
+        schedule.day_name === day &&
+        (schedule.time_start === time || schedule.time_end === time)
+    );
+    return schedule ? `${schedule.sa_fullname}` : "";
+  };
+
+  const logout = () => {
+    const confirmLogout = window.confirm("Are you sure to log out?");
+    if (confirmLogout) {
+      sessionStorage.removeItem("saId");
+      sessionStorage.removeItem("firstname");
+      sessionStorage.removeItem("lastname");
+      router.push("/");
+    }
+  };
 
   return (
     <>
@@ -64,6 +122,9 @@ const Test = () => {
         >
           {isSidebarVisible ? <Icon.List size={20} /> : <Icon.X size={20} />}
         </Button>
+        <h6 className="ms-auto" style={{ color: "white" }}>
+          {firstname} {lastname}
+        </h6>
       </Navbar>
 
       <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
@@ -92,49 +153,64 @@ const Test = () => {
               >
                 <Icon.Stopwatch className="me-2" /> Track Time
               </Nav.Link>
-             
+              <Nav.Link href="apply-leave"className="text-light">
+                <Icon.FileEarmarkText className="me-2" /> Apply Leave
+              </Nav.Link>
+              <Nav.Link onClick={logout} className="text-light">
+                <Icon.BoxArrowDownRight className="me-2" /> Logout
+              </Nav.Link>
             </Nav>
           )}
         </div>
 
         {/* Main Content */}
-        <Container style={{ flex: 1, padding: "20px" }}>
-          <h1>Set Time</h1>
-          <p>Choose a time (fixed at 30-minute intervals):</p>
-
-          <select
-            value={selectedTime}
-            onChange={handleTimeChange}
-            style={{
-              padding: "10px",
-              fontSize: "1rem",
-              borderRadius: "5px",
-              border: "1px solid #ccc",
-            }}
-          >
-            <option value="">Select a time</option>
-            {timeSlots.map((time, index) => (
-              <option key={index} value={time.value}>
-                {time.display}
-              </option>
-            ))}
-          </select>
-
-          {selectedTime && (
-            <div style={{ marginTop: "20px" }}>
-              <h2>Selected Time</h2>
-              <p>
-                <strong>12-hour format:</strong> {timeSlots.find((t) => t.value === selectedTime)?.display}
-              </p>
-              <p>
-                <strong>24-hour format:</strong> {selectedTime}
-              </p>
-            </div>
-          )}
+        <Container fluid style={{ flex: 1, padding: "20px" }}>
+          <h2>Schedule</h2>
+          <Table striped bordered hover>
+            <thead className="text-center">
+              <tr>
+                <th className="bg-light align-middle">Time</th>
+                {daysOfWeek.map((day) => (
+                  <th
+                    key={day}
+                    className={`align-middle ${
+                      isDayScheduled(day) ? "bg-success text-white" : "bg-light"
+                    }`}
+                  >
+                    {day}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="text-center">
+              {timeSlots.map((time) => (
+                <tr key={time}>
+                  <td className="align-middle fw-bold">{time}</td>
+                  {daysOfWeek.map((day) => (
+                    <td
+                      key={`${day}-${time}`}
+                      style={{
+                        backgroundColor:
+                          isStartTime(day, time) || isEndTime(day, time)
+                            ? "orange"
+                            : "white",
+                      }}
+                    >
+                      {(isStartTime(day, time) || isEndTime(day, time)) && (
+                        <div className="small">
+                          {getFullNameForSchedule(day, time)}
+                        </div>
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </Table>
         </Container>
       </div>
     </>
   );
 };
 
-export default Test;
+export default Dashboard;

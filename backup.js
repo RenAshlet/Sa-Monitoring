@@ -32,6 +32,8 @@ const Create = () => {
   useEffect(() => {
     if (adminId !== null) {
       retrieveAllSa();
+      retrieveDays();
+      retrieveDutyHours();
     }
   }, [adminId]);
 
@@ -40,14 +42,25 @@ const Create = () => {
   };
 
   const [saId, setSaId] = useState("");
+  const [days, setDays] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [dutyHours, setDutyHours] = useState("");
 
   const [getAllSa, setGetAllSa] = useState([]);
   const [getSaById, setGetSaById] = useState([]);
+  const [getDays, setGetDays] = useState([]);
+  const [getDutyHours, setGetDutyHours] = useState([]);
 
   //------------------- Modal --------------------------//
   const [showModal, setShowModal] = useState(false);
   const handleCloseModal = () => setShowModal(false);
   const handleShowModal = () => setShowModal(true);
+
+  //------------------- Assign Scheduling for Sa Modal --------------------------//
+  const [showAssignSchedModal, setShowAssignSchedModal] = useState(false);
+  const handleCloseAssignSchedModal = () => setShowAssignSchedModal(false);
+  const handleShowAssignSchedModal = () => setShowAssignSchedModal(true);
 
   //-----------------Create new Sa Account -----------------//
   const [firstname, setFirstname] = useState("");
@@ -78,6 +91,7 @@ const Create = () => {
       },
     });
     setGetAllSa(response.data);
+    console.log("List of Student Assistant:", response.data);
   };
 
   const retrieveSaById = async (saId) => {
@@ -94,13 +108,58 @@ const Create = () => {
       },
     });
     setGetSaById(response.data);
+    console.log("Selected Student Assistant:", response.data);
+
     const student = response.data[0];
     setSaId(student.sa_id);
+  };
+
+  const retrieveDays = async () => {
+    const url = "http://localhost/nextjs/api/sa-monitoring/admin.php";
+
+    const response = await axios.get(url, {
+      params: {
+        json: JSON.stringify({}),
+        operation: "displayDays",
+      },
+    });
+    setGetDays(response.data);
+    //console.log("List of Days:", response.data);
+  };
+
+  const retrieveDutyHours = async () => {
+    const url = "http://localhost/nextjs/api/sa-monitoring/admin.php";
+
+    const response = await axios.get(url, {
+      params: {
+        json: JSON.stringify({}),
+        operation: "displayDutyHours",
+      },
+    });
+    setGetDutyHours(response.data);
+    console.log("List of duty hours:", response.data);
+  };
+
+  const handleSelectionDay = (event) => {
+    setDays(event.target.value);
+  };
+
+  const handleStartTimeChange = (event) => {
+    setStartTime(event.target.value);
+  };
+
+  const handleEndTimeChange = (event) => {
+    setEndTime(event.target.value);
+  };
+
+  const selectedDutyHours = (event) => {
+    setDutyHours(event.target.value);
   };
 
   const showAssignSched = (saId) => {
     retrieveSaById(saId);
     router.push(`/admin/create/assign?saId=${saId}`);
+    //handleShowAssignSchedModal(true);
   };
 
   const submit = async () => {
@@ -155,6 +214,47 @@ const Create = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const submitAssignSched = async () => {
+    const url = "http://localhost/nextjs/api/sa-monitoring/admin.php";
+
+    const jsonData = {
+      saId: saId,
+      dayId: days,
+      startTime: convertTo24HourFormat(startTime),
+      endTime: convertTo24HourFormat(endTime),
+      dutyHours: dutyHours,
+    };
+
+    console.log(jsonData);
+
+    const formData = new FormData();
+    formData.append("operation", "assignSaDutySchedule");
+    formData.append("json", JSON.stringify(jsonData));
+
+    const response = await axios({
+      url: url,
+      method: "POST",
+      data: formData,
+    });
+
+    if (response.data == 1) {
+      alert("success");
+      setDays("");
+      setStartTime("");
+      setEndTime("");
+    } else {
+      alert("failure");
+    }
+  };
+
+  const convertTo24HourFormat = (time) => {
+    const [timePart, modifier] = time.split(" ");
+    let [hours, minutes] = timePart.split(":");
+    if (modifier === "PM" && hours !== "12") hours = parseInt(hours, 10) + 12;
+    if (modifier === "AM" && hours === "12") hours = "00";
+    return `${hours}:${minutes}`;
   };
 
   const logout = () => {
@@ -277,10 +377,8 @@ const Create = () => {
           <Table striped bordered hover>
             <thead>
               <tr>
-                <th>Student Assistant</th>
-                <th>Day Schedule</th>
-                <th>Time Schedule</th>
-                <th>Requied Duty Hours</th>
+                <th>Firstname</th>
+                <th>Lastname</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -288,10 +386,8 @@ const Create = () => {
               {getAllSa.map((sa, index) => {
                 return (
                   <tr key={index}>
-                    <td>{sa.sa_fullname}</td>
-                    <td>{sa.day_names}</td>
-                    <td>{sa.time_schedule}</td>
-                    <td>{sa.required_duty_hours}</td>
+                    <td>{sa.firstname}</td>
+                    <td>{sa.lastname}</td>
                     <td>
                       <Button
                         onClick={() => {
@@ -391,6 +487,98 @@ const Create = () => {
                 </>
               ) : (
                 "Submit"
+              )}
+            </Button>
+          </>
+        }
+      />
+
+      {/* Assign Scheduling for Sa */}
+      <ReusableModal
+        showModal={showAssignSchedModal}
+        handleCloseModal={handleCloseAssignSchedModal}
+        title={"Assign Duty Schedule"}
+        bodyContent={
+          <>
+            <Form.Group controlId="day">
+              <Form.Label>Day</Form.Label>
+              <Form.Control
+                as="select"
+                value={days}
+                onChange={handleSelectionDay}
+              >
+                <option value="">Select Day</option>
+                {getDays.map((day, index) => (
+                  <option key={index} value={day.day_id}>
+                    {day.day_name}
+                  </option>
+                ))}
+              </Form.Control>
+            </Form.Group>
+
+            <Form.Group controlId="startTime">
+              <Form.Label>Start Time</Form.Label>
+              <Form.Control
+                type="time"
+                value={startTime}
+                onChange={handleStartTimeChange}
+              />
+            </Form.Group>
+
+            <Form.Group controlId="endTime">
+              <Form.Label>End Time</Form.Label>
+              <Form.Control
+                type="time"
+                value={endTime}
+                onChange={handleEndTimeChange}
+              />
+            </Form.Group>
+
+            <Form.Group controlId="dutyhours">
+              <Form.Label>Required Duty Hours</Form.Label>
+              <Form.Control
+                as="select"
+                value={dutyHours}
+                onChange={selectedDutyHours}
+              >
+                <option value="">Select Duty Hours</option>
+                {getDutyHours.map((hours, index) => {
+                  return (
+                    <option key={index} value={hours.duty_hours_id}>
+                      {hours.required_duty_hours} hours
+                    </option>
+                  );
+                })}
+              </Form.Control>
+            </Form.Group>
+          </>
+        }
+        footerContent={
+          <>
+            <Button variant="secondary" onClick={handleCloseAssignSchedModal}>
+              Close
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                handleCloseAssignSchedModal();
+                submitAssignSched();
+              }}
+              disabled={loading || !days || !startTime || !endTime}
+            >
+              {loading ? (
+                <>
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                  />
+                  Loading...
+                </>
+              ) : (
+                "Save Changes"
               )}
             </Button>
           </>
