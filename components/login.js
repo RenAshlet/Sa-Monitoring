@@ -1,6 +1,6 @@
 "use client";
 import axios from "axios";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Container, Card, Form, Button, Alert, Spinner } from "react-bootstrap";
 
@@ -15,6 +15,9 @@ const Login = () => {
     variant: "success",
     message: "",
   });
+
+  const usernameRef = useRef(null);
+  const passwordRef = useRef(null);
 
   const showAlert = (variant, message) => {
     setAlertShow({ show: true, variant, message });
@@ -36,7 +39,6 @@ const Login = () => {
     }
 
     const url = "http://localhost/nextjs/api/sa-monitoring/login.php";
-    //const url = "http://192.168.1.48/nextjs/api/sa-monitoring/login.php";
 
     const jsonData = {
       username: username,
@@ -81,91 +83,97 @@ const Login = () => {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (document.activeElement === usernameRef.current) {
+        passwordRef.current.focus();
+      }
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (document.activeElement === passwordRef.current) {
+        usernameRef.current.focus();
+      }
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      login();
+    }
+  };
+
   return (
-    <>
-      <Container className="d-flex align-items-center justify-content-center vh-100">
-        <Card
-          style={{ width: "30rem" }}
-          className="shadow-lg p-4 rounded text-black"
-        >
-          <Card.Body style={{ backgroundColor: "#ffffff" }}>
-            <div className="text-center mb-3">
-              <h2 className="text-[#1e0e4b] font-bold">
-                SA <span className="text-[#7747ff]">Monitoring</span>
-              </h2>
-              <p className="text-sm text-[#1e0e4b]">Log in to your account</p>
-            </div>
-            <Form
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  login();
-                }
-              }}
+    <Container className="d-flex align-items-center justify-content-center vh-100">
+      <Card
+        style={{ width: "30rem" }}
+        className="shadow-lg p-4 rounded text-black"
+      >
+        <Card.Body style={{ backgroundColor: "#ffffff" }}>
+          <div className="text-center mb-3">
+            <h2 className="text-[#1e0e4b] font-bold">
+              SA <span className="text-[#7747ff]">Monitoring</span>
+            </h2>
+            <p className="text-sm text-[#1e0e4b]">Log in to your account</p>
+          </div>
+          <Form onKeyDown={handleKeyDown}>
+            <Form.Group className="mb-3">
+              <Form.Label className="text-gray-600">Username</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                ref={usernameRef}
+                autoFocus
+                className="rounded border border-gray-200 text-black"
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label className="text-gray-600">Password</Form.Label>
+              <Form.Control
+                type="password"
+                placeholder="Enter password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                ref={passwordRef}
+                className="rounded border border-gray-200 text-black"
+              />
+            </Form.Group>
+
+            <Button
+              variant="primary"
+              onClick={login}
+              className="w-100 mb-2 bg-[#7747ff] text-white"
+              disabled={loading}
             >
-              <Form.Group className="mb-3">
-                <Form.Label className="text-gray-600">Username</Form.Label>
-                <Form.Control
-                  type="text"
-                  placeholder="Enter username"
-                  value={username}
-                  onChange={(e) => {
-                    setUsername(e.target.value);
-                  }}
-                  autoFocus
-                  className="rounded border border-gray-200 text-black"
-                />
-              </Form.Group>
-
-              <Form.Group className="mb-3">
-                <Form.Label className="text-gray-600">Password</Form.Label>
-                <Form.Control
-                  type="password"
-                  placeholder="Enter password"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                  }}
-                  className="rounded border border-gray-200 text-black"
-                />
-              </Form.Group>
-
-              <Button
-                variant="primary"
-                onClick={login}
-                className="w-100 mb-2 bg-[#7747ff] text-white"
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <Spinner
-                      as="span"
-                      animation="border"
-                      size="sm"
-                      role="status"
-                      aria-hidden="true"
-                    />
-                    Loading...
-                  </>
-                ) : (
-                  "Login"
-                )}
-              </Button>
-
-              {alertShow.show && (
-                <Alert
-                  variant={alertShow.variant}
-                  onClose={() => setAlertShow({ ...alertShow, show: false })}
-                  dismissible
-                >
-                  {alertShow.message}
-                </Alert>
+              {loading ? (
+                <>
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                  />
+                  Loading...
+                </>
+              ) : (
+                "Login"
               )}
-            </Form>
-          </Card.Body>
-        </Card>
-      </Container>
-    </>
+            </Button>
+
+            {alertShow.show && (
+              <Alert
+                variant={alertShow.variant}
+                onClose={() => setAlertShow({ ...alertShow, show: false })}
+                dismissible
+              >
+                {alertShow.message}
+              </Alert>
+            )}
+          </Form>
+        </Card.Body>
+      </Card>
+    </Container>
   );
 };
 

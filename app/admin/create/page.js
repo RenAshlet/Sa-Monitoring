@@ -32,6 +32,7 @@ const Create = () => {
     if (adminId !== null) {
       retrieveAllSa();
       retrieveDays();
+      retrieveDutyHours();
     }
   }, [adminId]);
 
@@ -43,11 +44,12 @@ const Create = () => {
   const [days, setDays] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-  const [hours, setHours] = useState("");
+  const [dutyHours, setDutyHours] = useState("");
 
   const [getAllSa, setGetAllSa] = useState([]);
   const [getSaById, setGetSaById] = useState([]);
   const [getDays, setGetDays] = useState([]);
+  const [getDutyHours, setGetDutyHours] = useState([]);
 
   //------------------- Create new Sa Modal --------------------------//
   const [showCreateSaModal, setShowCreateSaModal] = useState(false);
@@ -124,6 +126,19 @@ const Create = () => {
     //console.log("List of Days:", response.data);
   };
 
+  const retrieveDutyHours = async () => {
+    const url = "http://localhost/nextjs/api/sa-monitoring/admin.php";
+
+    const response = await axios.get(url, {
+      params: {
+        json: JSON.stringify({}),
+        operation: "displayDutyHours",
+      },
+    });
+    setGetDutyHours(response.data);
+    console.log("List of duty hours:", response.data);
+  };
+
   const handleSelectionDay = (event) => {
     setDays(event.target.value);
   };
@@ -134,6 +149,10 @@ const Create = () => {
 
   const handleEndTimeChange = (event) => {
     setEndTime(event.target.value);
+  };
+
+  const selectedDutyHours = (event) => {
+    setDutyHours(event.target.value);
   };
 
   const showAssignSched = (saId) => {
@@ -201,9 +220,9 @@ const Create = () => {
     const jsonData = {
       saId: saId,
       dayId: days,
-      startTime: startTime,
-      endTime: endTime,
-      requiredDutyHours: hours,
+      startTime: convertTo24HourFormat(startTime),
+      endTime: convertTo24HourFormat(endTime),
+      dutyHours: dutyHours,
     };
 
     console.log(jsonData);
@@ -228,24 +247,13 @@ const Create = () => {
     }
   };
 
-  const generateTimeOptions = () => {
-    const times = [];
-    for (let hour = 7; hour <= 17; hour++) {
-      times.push(`${hour}:00`);
-      //times.push(`${hour}:30`);
-    }
-    times.pop();
-    return times;
+  const convertTo24HourFormat = (time) => {
+    const [timePart, modifier] = time.split(" ");
+    let [hours, minutes] = timePart.split(":");
+    if (modifier === "PM" && hours !== "12") hours = parseInt(hours, 10) + 12;
+    if (modifier === "AM" && hours === "12") hours = "00";
+    return `${hours}:${minutes}`;
   };
-
-  const convertTo12HourFormat = (time) => {
-    const [hour, minute] = time.split(":").map(Number);
-    const ampm = hour < 12 ? "AM" : "PM";
-    const formattedHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-    return `${formattedHour}:${minute.toString().padStart(2, "0")} ${ampm}`;
-  };
-
-  const timeOptions = generateTimeOptions();
 
   const logout = () => {
     const confirmLogout = window.confirm("Are you sure to log out?");
@@ -297,11 +305,17 @@ const Create = () => {
               <Nav.Link href="/admin/dashboard" className="text-light">
                 <Icon.Grid className="me-2" /> Dashboard
               </Nav.Link>
+              <Nav.Link href="/admin/duty_hours" className="text-light">
+                <Icon.Clock className="me-2" /> Duty Hours
+              </Nav.Link>
               <Nav.Link href="/admin/create" className="text-light">
                 <Icon.PersonPlus className="me-2" /> Create Assistant
               </Nav.Link>
               <Nav.Link href="/admin/attendance" className="text-light">
                 <Icon.ClipboardCheck className="me-2" /> Attendance
+              </Nav.Link>
+              <Nav.Link href="/admin/leave-approval" className="text-light">
+                <Icon.Check2Circle className="me-2" /> Leave Approval
               </Nav.Link>
               <Nav.Link onClick={logout} className="text-light">
                 <Icon.BoxArrowDownRight className="me-2" /> Logout
@@ -486,7 +500,7 @@ const Create = () => {
               value={days}
               onChange={handleSelectionDay}
             >
-              <option value="">--Select Day--</option>
+              <option value="">Select Day</option>
               {getDays.map((day, index) => (
                 <option key={index} value={day.day_id}>
                   {day.day_name}
@@ -498,46 +512,37 @@ const Create = () => {
           <Form.Group controlId="startTime">
             <Form.Label>Start Time</Form.Label>
             <Form.Control
-              as="select"
+              type="time"
               value={startTime}
               onChange={handleStartTimeChange}
-            >
-              <option value="">--Select Start Time--</option>
-              {timeOptions.map((time, index) => (
-                <option key={index} value={time}>
-                  {convertTo12HourFormat(time)}
-                </option>
-              ))}
-            </Form.Control>
+            />
           </Form.Group>
 
           <Form.Group controlId="endTime">
             <Form.Label>End Time</Form.Label>
             <Form.Control
-              as="select"
+              type="time"
               value={endTime}
               onChange={handleEndTimeChange}
-            >
-              <option value="">--Select End Time--</option>
-              {timeOptions.map((time, index) => (
-                <option key={index} value={time}>
-                  {convertTo12HourFormat(time)}
-                </option>
-              ))}
-            </Form.Control>
+            />
           </Form.Group>
 
-          <Form.Group className="mb-3">
-            <Form.Label className="text-gray-600">
-              Required Duty Hours
-            </Form.Label>
+          <Form.Group controlId="dutyhours">
+            <Form.Label>Required Duty Hours</Form.Label>
             <Form.Control
-              type="number"
-              placeholder="required hours"
-              value={hours}
-              onChange={(e) => setHours(e.target.value)}
-              className="rounded border border-gray-200 text-black"
-            />
+              as="select"
+              value={dutyHours}
+              onChange={selectedDutyHours}
+            >
+              <option value="">Select Duty Hours</option>
+              {getDutyHours.map((hours, index) => {
+                return (
+                  <option key={index} value={hours.duty_hours_id}>
+                    {hours.required_duty_hours} hours
+                  </option>
+                );
+              })}
+            </Form.Control>
           </Form.Group>
         </Modal.Body>
         <Modal.Footer>

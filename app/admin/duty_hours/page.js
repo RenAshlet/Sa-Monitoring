@@ -3,17 +3,18 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import * as Icon from "react-bootstrap-icons";
-import { Navbar, Nav, Container, Button, Table, Dropdown } from "react-bootstrap";
+import { Navbar, Nav, Container, Form, Button } from "react-bootstrap";
 
-const Dashboard = () => {
+const DutyHours = () => {
   const [adminId, setAdminId] = useState(null);
   const [firstname, setFirstname] = useState(null);
   const [lastname, setLastname] = useState(null);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
-  const [selectedStatus, setSelectedStatus] = useState("Present");
   const router = useRouter();
 
-  const [getSaStatus, setGetSaStatus] = useState([]);
+  const [hours, setHours] = useState("");
+
+  const [getDutyHours, setGetDutyHours] = useState([]);
 
   useEffect(() => {
     setAdminId(sessionStorage.adminId);
@@ -23,25 +24,52 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (adminId !== null) {
-      retrieveSaStatus();
+      retrieveDutyHours();
     }
-  }, [adminId, selectedStatus]);
+  }, [adminId]);
 
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
   };
 
-  const retrieveSaStatus = async () => {
-    const url = "http://localhost/nextjs/api/sa-monitoring/monitoring.php";
+  const retrieveDutyHours = async () => {
+    const url = "http://localhost/nextjs/api/sa-monitoring/admin.php";
 
     const response = await axios.get(url, {
       params: {
-        json: JSON.stringify({ status: selectedStatus }),
-        operation: "displaySaStatus",
+        json: JSON.stringify({}),
+        operation: "displayDutyHours",
       },
     });
-    setGetSaStatus(response.data);
+    setGetDutyHours(response.data);
     console.log("List of duty hours:", response.data);
+  };
+
+  const addDutyHours = async () => {
+    const url = "http://localhost/nextjs/api/sa-monitoring/admin.php";
+
+    const jsonData = {
+      requiedDutyHours: hours,
+    };
+
+    console.log(jsonData);
+
+    const formData = new FormData();
+    formData.append("operation", "addDutyHours");
+    formData.append("json", JSON.stringify(jsonData));
+
+    const response = await axios({
+      url: url,
+      method: "POST",
+      data: formData,
+    });
+
+    if (response.data == 1) {
+      alert("Add duty hours successfull.");
+      setHours("");
+    } else {
+      alert("Add duty hours failed!");
+    }
   };
 
   const logout = () => {
@@ -115,54 +143,27 @@ const Dashboard = () => {
 
         {/* Main Content */}
         <Container fluid style={{ flex: 1, padding: "20px" }}>
-          <h2>Admin Dashboard</h2>
+          <h2>Add Duty Hours</h2>
 
-          <Dropdown onSelect={(eventKey) => setSelectedStatus(eventKey)}>
-            <Dropdown.Toggle variant="primary" id="dropdown-basic">
-              {selectedStatus}
-            </Dropdown.Toggle>
-            <Dropdown.Menu>
-              <Dropdown.Item eventKey="Present">Present</Dropdown.Item>
-              <Dropdown.Item eventKey="Absent">Absent</Dropdown.Item>
-              <Dropdown.Item eventKey="Late">Late</Dropdown.Item>
-              {/* Add more statuses as needed */}
-            </Dropdown.Menu>
-          </Dropdown>
+          <Form.Group className="mb-3">
+            <Form.Label className="text-gray-600">Duty Hours</Form.Label>
+            <Form.Control
+              type="number"
+              placeholder="enter duty hours"
+              value={hours}
+              onChange={(e) => setHours(e.target.value)}
+              autoFocus
+              className="rounded border border-gray-200 text-black"
+            />
+          </Form.Group>
 
-          <Table>
-            <thead>
-              <tr>
-                <td>Student Assistant</td>
-                <td>Time Schedule</td>
-                <td>Date</td>
-                <td>Day</td>
-                <td>Time in</td>
-                <td>Time out</td>
-                <td>Approved Status</td>
-                <td>Status</td>
-              </tr>
-            </thead>
-            <tbody>
-              {getSaStatus.map((saStatus, index) => {
-                return (
-                  <tr key={index}>
-                    <td>{saStatus.sa_fullname}</td>
-                    <td>{saStatus.time_schedule}</td>
-                    <td>{saStatus.formatted_date}</td>
-                    <td>{saStatus.day_name}</td>
-                    <td>{saStatus.time_in}</td>
-                    <td>{saStatus.time_out}</td>
-                    <td>{saStatus.approved_status}</td>
-                    <td>{saStatus.status}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </Table>
+          <Button variant="primary" onClick={addDutyHours}>
+            Submit
+          </Button>
         </Container>
       </div>
     </>
   );
 };
 
-export default Dashboard;
+export default DutyHours;

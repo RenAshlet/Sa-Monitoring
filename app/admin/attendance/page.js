@@ -178,11 +178,17 @@ const Attendance = () => {
               <Nav.Link href="/admin/dashboard" className="text-light">
                 <Icon.Grid className="me-2" /> Dashboard
               </Nav.Link>
+              <Nav.Link href="/admin/duty_hours" className="text-light">
+                <Icon.Clock className="me-2" /> Duty Hours
+              </Nav.Link>
               <Nav.Link href="/admin/create" className="text-light">
                 <Icon.PersonPlus className="me-2" /> Create Assistant
               </Nav.Link>
               <Nav.Link href="/admin/attendance" className="text-light">
                 <Icon.ClipboardCheck className="me-2" /> Attendance
+              </Nav.Link>
+              <Nav.Link href="/admin/leave-approval" className="text-light">
+                <Icon.Check2Circle className="me-2" /> Leave Approval
               </Nav.Link>
               <Nav.Link onClick={logout} className="text-light">
                 <Icon.BoxArrowDownRight className="me-2" /> Logout
@@ -199,8 +205,7 @@ const Attendance = () => {
               <tr>
                 <th>Date</th>
                 <th>Day Schedule</th>
-                <th>Time Start</th>
-                <th>Time End</th>
+                <th>Time Schedule</th>
                 <th>Time-in</th>
                 <th>Time-out</th>
                 <th>Approved Status</th>
@@ -230,8 +235,7 @@ const Attendance = () => {
                     <tr key={index}>
                       <td>{timeIn.formatted_date}</td>
                       <td>{timeIn.day_name}</td>
-                      <td>{timeIn.time_start}</td>
-                      <td>{timeIn.time_end}</td>
+                      <td>{timeIn.time_schedule}</td>
                       <td>{timeIn.time_in}</td>
                       <td>{timeIn.time_out}</td>
                       <td>

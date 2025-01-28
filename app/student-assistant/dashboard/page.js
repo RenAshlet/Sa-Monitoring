@@ -91,7 +91,7 @@ const Dashboard = () => {
         schedule.day_name === day &&
         (schedule.time_start === time || schedule.time_end === time)
     );
-    return schedule ? `${schedule.firstname} ${schedule.lastname}` : "";
+    return schedule ? `${schedule.sa_fullname}` : "";
   };
 
   const logout = () => {

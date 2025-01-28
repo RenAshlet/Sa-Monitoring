@@ -22,7 +22,8 @@
     "react-bootstrap-icons": "^1.11.5",
     "react-calendar": "^5.1.0",
     "react-datepicker": "^7.6.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-time-picker": "^7.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

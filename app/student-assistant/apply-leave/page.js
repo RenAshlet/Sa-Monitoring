@@ -205,7 +205,7 @@ const Leave = () => {
 
         {/* Main Content */}
         <Container fluid style={{ flex: 1, padding: "20px" }}>
-          <h2 className="mb-4">Apply Leave</h2>
+          <h2 className="mb-3">Apply Leave</h2>
 
           <div className="d-flex justify-content-end mb-4">
             <Button

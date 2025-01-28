@@ -171,6 +171,9 @@ const LeaveApproval = () => {
               <Nav.Link href="/admin/dashboard" className="text-light">
                 <Icon.Grid className="me-2" /> Dashboard
               </Nav.Link>
+              <Nav.Link href="/admin/duty_hours" className="text-light">
+                <Icon.Clock className="me-2" /> Duty Hours
+              </Nav.Link>
               <Nav.Link href="/admin/create" className="text-light">
                 <Icon.PersonPlus className="me-2" /> Create Assistant
               </Nav.Link>
@@ -222,8 +225,11 @@ const LeaveApproval = () => {
                     </span>
                   </td>
                   <td>
-                    {saLeaveRequest.admin_fullname ||
-                      "waiting to be approved..."}
+                    {saLeaveRequest.admin_fullname?.trim() || (
+                      <span style={{ color: "gray", fontStyle: "italic" }}>
+                        waiting to be approved...
+                      </span>
+                    )}
                   </td>
                   <td>
                     <Button
@@ -245,7 +251,7 @@ const LeaveApproval = () => {
       {/* Modal for leave approval */}
       <Modal show={showApprovedModal} onHide={handleCloseModal}>
         <Modal.Header closeButton>
-          <Modal.Title>Time-in Approval</Modal.Title>
+          <Modal.Title>Leave Approval</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Table>

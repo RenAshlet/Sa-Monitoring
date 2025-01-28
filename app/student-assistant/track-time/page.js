@@ -262,8 +262,7 @@ const TrackTime = () => {
               <tr>
                 <th>Date</th>
                 <th>Day Schedule</th>
-                <th>Time Start</th>
-                <th>Time End</th>
+                <th>Time Schedule</th>
                 <th>Time-in</th>
                 <th>Time-out</th>
                 <th>Approved Status</th>
@@ -291,8 +290,7 @@ const TrackTime = () => {
                   <tr key={index}>
                     <td>{timeIn.formatted_date}</td>
                     <td>{timeIn.day_name}</td>
-                    <td>{timeIn.time_start}</td>
-                    <td>{timeIn.time_end}</td>
+                    <td>{timeIn.time_schedule}</td>
                     <td>{timeIn.time_in}</td>
                     <td>{timeIn.time_out}</td>
                     <td>
