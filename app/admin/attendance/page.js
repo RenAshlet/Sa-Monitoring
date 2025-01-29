@@ -3,28 +3,33 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import * as Icon from "react-bootstrap-icons";
-import {
-  Navbar,
-  Nav,
-  Container,
-  Table,
-  Button,
-  Modal,
-  Form,
-} from "react-bootstrap";
+import { Navbar, Nav, Container, Table, Button, Form } from "react-bootstrap";
+import ReusableModal from "@/components/modal";
+import { useLogout } from "@/components/admin/logout";
 
 const Attendance = () => {
   const [adminId, setAdminId] = useState(null);
   const [firstname, setFirstname] = useState(null);
   const [lastname, setLastname] = useState(null);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const logout = useLogout();
   const router = useRouter();
 
   useEffect(() => {
-    setAdminId(sessionStorage.adminId);
-    setFirstname(sessionStorage.firstname);
-    setLastname(sessionStorage.lastname);
-  });
+    const storedAdminId = sessionStorage.getItem("adminId");
+    const storedFirstname = sessionStorage.getItem("firstname");
+    const storedLastname = sessionStorage.getItem("lastname");
+
+    if (!storedAdminId) {
+      router.push("/");
+    } else {
+      setAdminId(storedAdminId);
+      setFirstname(storedFirstname);
+      setLastname(storedLastname);
+      setIsLoading(false);
+    }
+  }, [router]);
 
   useEffect(() => {
     if (adminId !== null) {
@@ -50,9 +55,9 @@ const Attendance = () => {
   const [getTimeInById, setGetTimeInById] = useState([]);
 
   //--------------- Modal ---------------//
-  const [showApprovedModal, setShowApprovedModal] = useState(false);
-  const handleCloseModal = () => setShowApprovedModal(false);
-  const handleShowModal = () => setShowApprovedModal(true);
+  const [showModal, setShowModal] = useState(false);
+  const handleCloseModal = () => setShowModal(false);
+  const handleShowModal = () => setShowModal(true);
 
   const retrieveAllSaTimeInTrack = async () => {
     const url = "http://localhost/nextjs/api/sa-monitoring/admin.php";
@@ -93,7 +98,7 @@ const Attendance = () => {
     setStatus(saTimeIn.status === "Absent" ? "Present" : saTimeIn.status);
   };
 
-  const showModal = (timeInId) => {
+  const showApprovedModal = (timeInId) => {
     retrieveAllSaTimeInTrackById(timeInId);
     handleShowModal(true);
   };
@@ -128,15 +133,9 @@ const Attendance = () => {
     }
   };
 
-  const logout = () => {
-    const confirmLogout = window.confirm("Are you sure to log out?");
-    if (confirmLogout) {
-      sessionStorage.removeItem("adminId");
-      sessionStorage.removeItem("firstname");
-      sessionStorage.removeItem("lastname");
-      router.push("/");
-    }
-  };
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <>
@@ -275,7 +274,7 @@ const Attendance = () => {
                         <Button
                           variant="secondary"
                           onClick={() => {
-                            showModal(timeIn.track_id);
+                            showApprovedModal(timeIn.track_id);
                           }}
                         >
                           Approve
@@ -291,79 +290,83 @@ const Attendance = () => {
       </div>
 
       {/* Modal for time-in approval */}
-      <Modal show={showApprovedModal} onHide={handleCloseModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>Time-in Approval</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Table>
-            <tbody>
-              <tr>
-                <td>Date</td>
-                <td>{date}</td>
-              </tr>
-              <tr>
-                <td>Day Schedule</td>
-                <td>{daySched}</td>
-              </tr>
-              <tr>
-                <td>Time Start</td>
-                <td>{startTime}</td>
-              </tr>
-              <tr>
-                <td>Time In</td>
-                <td>{time}</td>
-              </tr>
-              <tr>
-                <td>Student Assistant</td>
-                <td>{saFullname}</td>
-              </tr>
-              <tr>
-                <td>Approved Status</td>
-                <td>
-                  <Form.Select
-                    value={approvedStatus}
-                    onChange={(e) => setApprovedStatus(e.target.value)}
-                    className="mb-3"
-                  >
-                    <option value="Pending">Pending</option>
-                    <option value="Approved">Approved</option>
-                    <option value="Rejected">Rejected</option>
-                  </Form.Select>
-                </td>
-              </tr>
-              <tr>
-                <td>Status</td>
-                <td>
-                  <Form.Select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    className="mb-3"
-                  >
-                    <option value="Present">Present</option>
-                    <option value="Late">Late</option>
-                    <option value="Absent">Absent</option>
-                  </Form.Select>
-                </td>
-              </tr>
-            </tbody>
-          </Table>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>
-            Close
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => {
-              saveChanges();
-              handleCloseModal();
-            }}
-          >
-            Save Changes
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <ReusableModal
+        showModal={showModal}
+        handleCloseModal={handleCloseModal}
+        title={"Time-in Approval"}
+        bodyContent={
+          <>
+            <Table>
+              <tbody>
+                <tr>
+                  <td>Date</td>
+                  <td>{date}</td>
+                </tr>
+                <tr>
+                  <td>Day Schedule</td>
+                  <td>{daySched}</td>
+                </tr>
+                <tr>
+                  <td>Time Start</td>
+                  <td>{startTime}</td>
+                </tr>
+                <tr>
+                  <td>Time In</td>
+                  <td>{time}</td>
+                </tr>
+                <tr>
+                  <td>Student Assistant</td>
+                  <td>{saFullname}</td>
+                </tr>
+                <tr>
+                  <td>Approved Status</td>
+                  <td>
+                    <Form.Select
+                      value={approvedStatus}
+                      onChange={(e) => setApprovedStatus(e.target.value)}
+                      className="mb-3"
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="Approved">Approved</option>
+                      <option value="Rejected">Rejected</option>
+                    </Form.Select>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Status</td>
+                  <td>
+                    <Form.Select
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value)}
+                      className="mb-3"
+                    >
+                      <option value="Present">Present</option>
+                      <option value="Late">Late</option>
+                      <option value="Absent">Absent</option>
+                    </Form.Select>
+                  </td>
+                </tr>
+              </tbody>
+            </Table>
+          </>
+        }
+        footerContent={
+          <>
+            <Button variant="secondary" onClick={handleCloseModal}>
+              Close
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                saveChanges();
+                handleCloseModal();
+              }}
+            >
+              Save Changes
+            </Button>
+          </>
+        }
+      />
     </>
   );
 };

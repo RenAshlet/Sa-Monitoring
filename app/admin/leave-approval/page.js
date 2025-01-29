@@ -2,32 +2,34 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import * as Icon from "react-bootstrap-icons";
-import {
-  Navbar,
-  Nav,
-  Container,
-  Button,
-  Table,
-  Modal,
-  Form,
-} from "react-bootstrap";
+import { Navbar, Nav, Container, Button, Table, Form } from "react-bootstrap";
 import axios from "axios";
+import ReusableModal from "@/components/modal";
+import { useLogout } from "@/components/admin/logout";
 
 const LeaveApproval = () => {
   const [adminId, setAdminId] = useState(null);
   const [firstname, setFirstname] = useState(null);
   const [lastname, setLastname] = useState(null);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const logout = useLogout();
   const router = useRouter();
 
-  const [getSaLeaveRequests, setGetSaLeaveRequests] = useState([]);
-  const [getSaLeaveRequestsById, setGetSaLeaveRequestsById] = useState([]);
-
   useEffect(() => {
-    setAdminId(sessionStorage.adminId);
-    setFirstname(sessionStorage.firstname);
-    setLastname(sessionStorage.lastname);
-  });
+    const storedAdminId = sessionStorage.getItem("adminId");
+    const storedFirstname = sessionStorage.getItem("firstname");
+    const storedLastname = sessionStorage.getItem("lastname");
+
+    if (!storedAdminId) {
+      router.push("/");
+    } else {
+      setAdminId(storedAdminId);
+      setFirstname(storedFirstname);
+      setLastname(storedLastname);
+      setIsLoading(false);
+    }
+  }, [router]);
 
   useEffect(() => {
     if (adminId !== null) {
@@ -38,6 +40,9 @@ const LeaveApproval = () => {
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
   };
+
+  const [getSaLeaveRequests, setGetSaLeaveRequests] = useState([]);
+  const [getSaLeaveRequestsById, setGetSaLeaveRequestsById] = useState([]);
 
   const [saFullname, setSaFullname] = useState("");
   const [date, setDate] = useState("");
@@ -121,15 +126,9 @@ const LeaveApproval = () => {
     }
   };
 
-  const logout = () => {
-    const confirmLogout = window.confirm("Are you sure to log out?");
-    if (confirmLogout) {
-      sessionStorage.removeItem("adminId");
-      sessionStorage.removeItem("firstname");
-      sessionStorage.removeItem("lastname");
-      router.push("/");
-    }
-  };
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <>
@@ -249,73 +248,77 @@ const LeaveApproval = () => {
       </div>
 
       {/* Modal for leave approval */}
-      <Modal show={showApprovedModal} onHide={handleCloseModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>Leave Approval</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Table>
-            <tbody>
-              <tr>
-                <td>Student Assistant</td>
-                <td>{saFullname}</td>
-              </tr>
-              <tr>
-                <td>Date</td>
-                <td>{date}</td>
-              </tr>
-              <tr>
-                <td>Leave Type</td>
-                <td>{leaveType}</td>
-              </tr>
-              <tr>
-                <td>Reason</td>
-                <td>
-                  <Form.Group className="mb-3">
-                    <Form.Control
-                      as="textarea"
-                      rows={3}
-                      placeholder="Enter reason for the leave..."
-                      value={reason}
-                      onChange={(e) => setReason(e.target.value)}
-                      className="rounded border-1"
-                      readOnly
-                    />
-                  </Form.Group>
-                </td>
-              </tr>
-              <tr>
-                <td>Approved Status</td>
-                <td>
-                  <Form.Select
-                    value={approvedStatus}
-                    onChange={(e) => setApprovedStatus(e.target.value)}
-                    className="mb-3"
-                  >
-                    <option value="Pending">Pending</option>
-                    <option value="Approved">Approved</option>
-                    <option value="Rejected">Rejected</option>
-                  </Form.Select>
-                </td>
-              </tr>
-            </tbody>
-          </Table>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>
-            Close
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => {
-              saveChanges();
-              handleCloseModal();
-            }}
-          >
-            Save Changes
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <ReusableModal
+        showModal={showApprovedModal}
+        handleCloseModal={handleCloseModal}
+        title={"Leave Approval"}
+        bodyContent={
+          <>
+            <Table>
+              <tbody>
+                <tr>
+                  <td>Student Assistant</td>
+                  <td>{saFullname}</td>
+                </tr>
+                <tr>
+                  <td>Date</td>
+                  <td>{date}</td>
+                </tr>
+                <tr>
+                  <td>Leave Type</td>
+                  <td>{leaveType}</td>
+                </tr>
+                <tr>
+                  <td>Reason</td>
+                  <td>
+                    <Form.Group className="mb-3">
+                      <Form.Control
+                        as="textarea"
+                        rows={3}
+                        placeholder="Enter reason for the leave..."
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        className="rounded border-1"
+                        readOnly
+                      />
+                    </Form.Group>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Approved Status</td>
+                  <td>
+                    <Form.Select
+                      value={approvedStatus}
+                      onChange={(e) => setApprovedStatus(e.target.value)}
+                      className="mb-3"
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="Approved">Approved</option>
+                      <option value="Rejected">Rejected</option>
+                    </Form.Select>
+                  </td>
+                </tr>
+              </tbody>
+            </Table>
+          </>
+        }
+        footerContent={
+          <>
+            <Button variant="secondary" onClick={handleCloseModal}>
+              Close
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                saveChanges();
+                handleCloseModal();
+              }}
+            >
+              Save Changes
+            </Button>
+          </>
+        }
+      />
     </>
   );
 };

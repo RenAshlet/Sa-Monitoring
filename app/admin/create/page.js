@@ -15,6 +15,7 @@ import {
   Card,
 } from "react-bootstrap";
 import ReusableModal from "@/components/modal";
+import { useLogout } from "@/components/admin/logout";
 
 const Create = () => {
   const [adminId, setAdminId] = useState(null);
@@ -22,13 +23,24 @@ const Create = () => {
   const [adminLastname, setAdminLastname] = useState(null);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const logout = useLogout();
   const router = useRouter();
 
   useEffect(() => {
-    setAdminId(sessionStorage.adminId);
-    setAdminFirstname(sessionStorage.firstname);
-    setAdminLastname(sessionStorage.lastname);
-  });
+    const storedAdminId = sessionStorage.getItem("adminId");
+    const storedFirstname = sessionStorage.getItem("firstname");
+    const storedLastname = sessionStorage.getItem("lastname");
+
+    if (!storedAdminId) {
+      router.push("/");
+    } else {
+      setAdminId(storedAdminId);
+      setAdminFirstname(storedFirstname);
+      setAdminLastname(storedLastname);
+      setIsLoading(false);
+    }
+  }, [router]);
 
   useEffect(() => {
     if (adminId !== null) {
@@ -157,15 +169,9 @@ const Create = () => {
     }
   };
 
-  const logout = () => {
-    const confirmLogout = window.confirm("Are you sure to log out?");
-    if (confirmLogout) {
-      sessionStorage.removeItem("adminId");
-      sessionStorage.removeItem("firstname");
-      sessionStorage.removeItem("lastname");
-      router.push("/");
-    }
-  };
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <>

@@ -4,45 +4,41 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import * as Icon from "react-bootstrap-icons";
 import { Navbar, Nav, Container, Form, Button } from "react-bootstrap";
+import { useLogout } from "@/components/admin/logout";
 
 const DutyHours = () => {
   const [adminId, setAdminId] = useState(null);
   const [firstname, setFirstname] = useState(null);
   const [lastname, setLastname] = useState(null);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const logout = useLogout();
   const router = useRouter();
 
   const [hours, setHours] = useState("");
 
-  const [getDutyHours, setGetDutyHours] = useState([]);
-
   useEffect(() => {
-    setAdminId(sessionStorage.adminId);
-    setFirstname(sessionStorage.firstname);
-    setLastname(sessionStorage.lastname);
-  });
+    const storedAdminId = sessionStorage.getItem("adminId");
+    const storedFirstname = sessionStorage.getItem("firstname");
+    const storedLastname = sessionStorage.getItem("lastname");
+
+    if (!storedAdminId) {
+      router.push("/");
+    } else {
+      setAdminId(storedAdminId);
+      setFirstname(storedFirstname);
+      setLastname(storedLastname);
+      setIsLoading(false);
+    }
+  }, [router]);
 
   useEffect(() => {
     if (adminId !== null) {
-      retrieveDutyHours();
     }
   }, [adminId]);
 
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
-  };
-
-  const retrieveDutyHours = async () => {
-    const url = "http://localhost/nextjs/api/sa-monitoring/admin.php";
-
-    const response = await axios.get(url, {
-      params: {
-        json: JSON.stringify({}),
-        operation: "displayDutyHours",
-      },
-    });
-    setGetDutyHours(response.data);
-    console.log("List of duty hours:", response.data);
   };
 
   const addDutyHours = async () => {
@@ -72,15 +68,9 @@ const DutyHours = () => {
     }
   };
 
-  const logout = () => {
-    const confirmLogout = window.confirm("Are you sure to log out?");
-    if (confirmLogout) {
-      sessionStorage.removeItem("adminId");
-      sessionStorage.removeItem("firstname");
-      sessionStorage.removeItem("lastname");
-      router.push("/");
-    }
-  };
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <>
@@ -157,7 +147,7 @@ const DutyHours = () => {
             />
           </Form.Group>
 
-          <Button variant="primary" onClick={addDutyHours}>
+          <Button variant="primary" onClick={addDutyHours} disabled={!hours}>
             Submit
           </Button>
         </Container>

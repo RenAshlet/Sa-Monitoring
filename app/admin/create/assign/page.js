@@ -6,9 +6,21 @@ import { Container, Button, Form, Modal, Card, Badge } from "react-bootstrap";
 import * as Icon from "react-bootstrap-icons";
 
 const AssignSchedule = () => {
+  const [adminId, setAdminId] = useState(null);
   const searchParams = useSearchParams();
   const saId = searchParams.get("saId");
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+
+  useEffect(() => {
+    const storedAdminId = sessionStorage.getItem("adminId");
+    if (!storedAdminId) {
+      router.push("/");
+    } else {
+      setAdminId(storedAdminId);
+      setIsLoading(false);
+    }
+  }, [router]);
 
   const [getDays, setGetDays] = useState([]);
   const [getDutyHours, setGetDutyHours] = useState([]);
@@ -132,6 +144,10 @@ const AssignSchedule = () => {
     if (modifier === "AM" && hours === "12") hours = "00";
     return `${hours}:${minutes}`;
   };
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <Container className="d-flex justify-content-center align-items-center vh-100">

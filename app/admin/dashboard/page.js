@@ -3,38 +3,39 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import * as Icon from "react-bootstrap-icons";
 import { Navbar, Nav, Container, Button } from "react-bootstrap";
+import { useLogout } from "@/components/admin/logout";
 
 const Dashboard = () => {
   const [adminId, setAdminId] = useState(null);
   const [firstname, setFirstname] = useState(null);
   const [lastname, setLastname] = useState(null);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const logout = useLogout();
   const router = useRouter();
 
   useEffect(() => {
-    setAdminId(sessionStorage.adminId);
-    setFirstname(sessionStorage.firstname);
-    setLastname(sessionStorage.lastname);
-  });
+    const storedAdminId = sessionStorage.getItem("adminId");
+    const storedFirstname = sessionStorage.getItem("firstname");
+    const storedLastname = sessionStorage.getItem("lastname");
 
-  useEffect(() => {
-    if (adminId !== null) {
+    if (!storedAdminId) {
+      router.push("/");
+    } else {
+      setAdminId(storedAdminId);
+      setFirstname(storedFirstname);
+      setLastname(storedLastname);
+      setIsLoading(false);
     }
-  }, [adminId]);
+  }, [router]);
 
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
   };
 
-  const logout = () => {
-    const confirmLogout = window.confirm("Are you sure to log out?");
-    if (confirmLogout) {
-      sessionStorage.removeItem("adminId");
-      sessionStorage.removeItem("firstname");
-      sessionStorage.removeItem("lastname");
-      router.push("/");
-    }
-  };
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <>
