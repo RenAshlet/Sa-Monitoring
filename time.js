@@ -11,7 +11,6 @@ import {
   Table,
   Row,
   Col,
-  Form,
 } from "react-bootstrap";
 
 const TrackTime = () => {
@@ -24,8 +23,6 @@ const TrackTime = () => {
   const [getSaDutySchedule, setGetSaDutySchedule] = useState([]);
   const [getSaTimeInTrack, setGetSaTimeInTrack] = useState([]);
   const [currentDaySchedule, setCurrentDaySchedule] = useState(null); // selected sa_duty_schedule
-
-  const [timeOut, setTimeOut] = useState("");
 
   useEffect(() => {
     setSaId(sessionStorage.saId);
@@ -141,7 +138,6 @@ const TrackTime = () => {
 
     const jsonData = {
       trackId: getSaTimeInTrack[0].track_id,
-      timeOut: convertTo24HourFormat(timeOut),
       dutyScheduleId: currentDaySchedule,
     };
 
@@ -169,10 +165,6 @@ const TrackTime = () => {
     }
   };
 
-  const handleTimeOut = (event) => {
-    setTimeOut(event.target.value);
-  };
-
   const logout = () => {
     const confirmLogout = window.confirm("Are you sure to log out?");
     if (confirmLogout) {
@@ -181,14 +173,6 @@ const TrackTime = () => {
       sessionStorage.removeItem("lastname");
       router.push("/");
     }
-  };
-
-  const convertTo24HourFormat = (time) => {
-    const [timePart, modifier] = time.split(" ");
-    let [hours, minutes] = timePart.split(":");
-    if (modifier === "PM" && hours !== "12") hours = parseInt(hours, 10) + 12;
-    if (modifier === "AM" && hours === "12") hours = "00";
-    return `${hours}:${minutes}`;
   };
 
   return (
@@ -266,19 +250,11 @@ const TrackTime = () => {
               <Button
                 variant="secondary"
                 onClick={SaTimeOut}
-                disabled={!currentDaySchedule || !timeOut}
+                disabled={!currentDaySchedule}
               >
                 Time out
               </Button>
             </Col>
-            <Form.Group controlId="endTime" className="mt-3">
-              <Form.Label>End Time</Form.Label>
-              <Form.Control
-                type="time"
-                value={timeOut}
-                onChange={handleTimeOut}
-              />
-            </Form.Group>
           </Row>
 
           <Table striped bordered hover responsive className="table-custom">

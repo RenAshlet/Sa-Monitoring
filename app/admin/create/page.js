@@ -12,6 +12,7 @@ import {
   Modal,
   Spinner,
   Table,
+  Card,
 } from "react-bootstrap";
 import ReusableModal from "@/components/modal";
 
@@ -124,7 +125,6 @@ const Create = () => {
       firstname: firstname,
       lastname: lastname,
       username: username,
-      password: password,
     };
 
     const formData = new FormData();
@@ -211,7 +211,7 @@ const Create = () => {
                 <Icon.Clock className="me-2" /> Duty Hours
               </Nav.Link>
               <Nav.Link href="/admin/create" className="text-light">
-                <Icon.PersonPlus className="me-2" /> Create Assistant
+                <Icon.PersonPlus className="me-2" /> Student Assistant
               </Nav.Link>
               <Nav.Link href="/admin/attendance" className="text-light">
                 <Icon.ClipboardCheck className="me-2" /> Attendance
@@ -228,8 +228,6 @@ const Create = () => {
 
         {/* Main Content */}
         <Container fluid style={{ flex: 1, padding: "20px" }}>
-          <h2>Add Student Assistant</h2>
-
           {alertShow.show && (
             <Modal
               show={alertShow.show}
@@ -266,7 +264,7 @@ const Create = () => {
 
           <Button
             variant="primary"
-            className="mb-3"
+            className="mb-1"
             onClick={() => {
               handleShowModal();
             }}
@@ -274,38 +272,44 @@ const Create = () => {
             Create
           </Button>
 
-          <Table striped bordered hover>
-            <thead>
-              <tr>
-                <th>Student Assistant</th>
-                <th>Day Schedule</th>
-                <th>Time Schedule</th>
-                <th>Requied Duty Hours</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {getAllSa.map((sa, index) => {
-                return (
-                  <tr key={index}>
-                    <td>{sa.sa_fullname}</td>
-                    <td>{sa.day_names}</td>
-                    <td>{sa.time_schedule}</td>
-                    <td>{sa.required_duty_hours}</td>
-                    <td>
-                      <Button
-                        onClick={() => {
-                          showAssignSched(sa.sa_id);
-                        }}
-                      >
-                        Assign
-                      </Button>
-                    </td>
+          <Card className="shadow rounded-3 mt-4">
+            <Card.Header className="bg-primary text-white">
+              <h5 className="mb-0">Student Assistant Schedule</h5>
+            </Card.Header>
+            <Card.Body>
+              <Table responsive striped bordered hover className="mb-0">
+                <thead className="bg-light">
+                  <tr>
+                    <th>Student Assistant</th>
+                    <th>Day Schedule</th>
+                    <th>Time Schedule</th>
+                    <th>Required Duty Hours</th>
+                    <th>Action</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </Table>
+                </thead>
+                <tbody>
+                  {getAllSa.map((sa, index) => (
+                    <tr key={index}>
+                      <td>{sa.sa_fullname}</td>
+                      <td>{sa.day_names}</td>
+                      <td>{sa.time_schedule}</td>
+                      <td>{sa.required_duty_hours}</td>
+                      <td>
+                        <Button
+                          variant="success"
+                          size="sm"
+                          className="px-3"
+                          onClick={() => showAssignSched(sa.sa_id)}
+                        >
+                          Assign
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </Card.Body>
+          </Card>
         </Container>
       </div>
 
@@ -362,11 +366,10 @@ const Create = () => {
                 <Form.Label className="text-gray-600">Password</Form.Label>
                 <Form.Control
                   type="text"
-                  placeholder="Enter password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="rounded border border-gray-200 text-black"
-                  readOnly
+                  disabled
                 />
               </Form.Group>
             </Form>
