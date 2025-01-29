@@ -23,6 +23,8 @@ const Leave = () => {
   const [firstname, setFirstname] = useState(null);
   const [lastname, setLastname] = useState(null);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
   const logout = useLogout();
 
   const [leaveType, setLeaveType] = useState("");
@@ -34,10 +36,19 @@ const Leave = () => {
   const [selectedDate, setSelectedDate] = useState(null);
 
   useEffect(() => {
-    setSaId(sessionStorage.saId);
-    setFirstname(sessionStorage.firstname);
-    setLastname(sessionStorage.lastname);
-  }, []);
+    const storedSaId = sessionStorage.getItem("saId");
+    const storedFirstname = sessionStorage.getItem("firstname");
+    const storedLastname = sessionStorage.getItem("lastname");
+
+    if (!storedSaId) {
+      router.push("/");
+    } else {
+      setSaId(storedSaId);
+      setFirstname(storedFirstname);
+      setLastname(storedLastname);
+      setIsLoading(false);
+    }
+  }, [router]);
 
   useEffect(() => {
     if (saId !== null) {
@@ -131,6 +142,10 @@ const Leave = () => {
     setGetSaLeaveRequests(response.data);
     console.log(response.data);
   };
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <>

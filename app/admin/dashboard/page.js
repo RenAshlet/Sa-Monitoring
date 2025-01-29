@@ -1,19 +1,20 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import * as Icon from "react-bootstrap-icons";
-import { Navbar, Nav, Container, Button } from "react-bootstrap";
+import { Navbar, Nav, Container, Button, Spinner } from "react-bootstrap";
 import { useLogout } from "@/components/admin/logout";
 
 const Dashboard = () => {
   const [adminId, setAdminId] = useState(null);
-  const [firstname, setFirstname] = useState(null);
-  const [lastname, setLastname] = useState(null);
+  const [firstname, setFirstname] = useState("");
+  const [lastname, setLastname] = useState("");
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const logout = useLogout();
   const router = useRouter();
 
+  // Fetch session data once on component mount
   useEffect(() => {
     const storedAdminId = sessionStorage.getItem("adminId");
     const storedFirstname = sessionStorage.getItem("firstname");
@@ -23,49 +24,50 @@ const Dashboard = () => {
       router.push("/");
     } else {
       setAdminId(storedAdminId);
-      setFirstname(storedFirstname);
-      setLastname(storedLastname);
+      setFirstname(storedFirstname || "");
+      setLastname(storedLastname || "");
       setIsLoading(false);
     }
   }, [router]);
 
-  const toggleSidebar = () => {
-    setIsSidebarVisible(!isSidebarVisible);
-  };
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarVisible((prev) => !prev);
+  }, []);
 
   if (isLoading) {
-    return null;
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+      </div>
+    );
   }
 
   return (
     <>
       {/* Top Navbar */}
-      <Navbar
-        expand="lg"
-        style={{ backgroundColor: "#343a40" }}
-        className="px-3"
-      >
-        <Navbar.Brand href="#" className="text-light">
-          Admin Page
-        </Navbar.Brand>
+      <Navbar expand="lg" bg="dark" variant="dark" className="px-3">
+        <Navbar.Brand href="#">Admin Page</Navbar.Brand>
         <Button
           variant="outline-light"
           onClick={toggleSidebar}
           className="me-2"
+          aria-label="Toggle Sidebar"
         >
           {isSidebarVisible ? <Icon.List size={20} /> : <Icon.X size={20} />}
         </Button>
-        <h6 className="ms-auto" style={{ color: "white" }}>
+        <h6 className="ms-auto text-light mb-0">
           {firstname} {lastname}
         </h6>
       </Navbar>
 
+      {/* Main Layout */}
       <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
         {/* Sidebar */}
         <div
           style={{
             width: isSidebarVisible ? "250px" : "0",
-            color: "white",
             padding: isSidebarVisible ? "20px" : "0",
             overflow: "hidden",
             transition: "width 0.3s ease, padding 0.3s ease",
@@ -99,6 +101,7 @@ const Dashboard = () => {
         {/* Main Content */}
         <Container fluid style={{ flex: 1, padding: "20px" }}>
           <h2>Admin Dashboard</h2>
+          {/* Add your main content here */}
         </Container>
       </div>
     </>

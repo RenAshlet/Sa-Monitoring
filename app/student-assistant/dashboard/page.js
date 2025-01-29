@@ -1,24 +1,36 @@
 "use client";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import * as Icon from "react-bootstrap-icons";
-import { Navbar, Nav, Container, Table, Button } from "react-bootstrap";
 import { useLogout } from "@/components/student/logout";
+import { Navbar, Nav, Container, Table, Button } from "react-bootstrap";
 
 const Dashboard = () => {
   const [saId, setSaId] = useState(null);
   const [firstname, setFirstname] = useState(null);
   const [lastname, setLastname] = useState(null);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const logout = useLogout();
+  const router = useRouter();
 
   const [getSaDutySchedule, setGetSaDutySchedule] = useState([]);
 
   useEffect(() => {
-    setSaId(sessionStorage.saId);
-    setFirstname(sessionStorage.firstname);
-    setLastname(sessionStorage.lastname);
-  }, []);
+    const storedSaId = sessionStorage.getItem("saId");
+    const storedFirstname = sessionStorage.getItem("firstname");
+    const storedLastname = sessionStorage.getItem("lastname");
+
+    if (!storedSaId) {
+      router.push("/");
+    } else {
+      setSaId(storedSaId);
+      setFirstname(storedFirstname);
+      setLastname(storedLastname);
+      setIsLoading(false);
+    }
+  }, [router]);
 
   useEffect(() => {
     if (saId !== null) {
@@ -47,6 +59,10 @@ const Dashboard = () => {
     setGetSaDutySchedule(response.data);
     console.log(response.data);
   };
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <>

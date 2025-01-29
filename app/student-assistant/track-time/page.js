@@ -13,12 +13,15 @@ import {
   Col,
   Form,
 } from "react-bootstrap";
+import { useLogout } from "@/components/student/logout";
 
 const TrackTime = () => {
   const [saId, setSaId] = useState(null);
   const [firstname, setFirstname] = useState(null);
   const [lastname, setLastname] = useState(null);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const logout = useLogout();
   const router = useRouter();
 
   const [getSaDutySchedule, setGetSaDutySchedule] = useState([]);
@@ -28,10 +31,19 @@ const TrackTime = () => {
   const [timeOut, setTimeOut] = useState("");
 
   useEffect(() => {
-    setSaId(sessionStorage.saId);
-    setFirstname(sessionStorage.firstname);
-    setLastname(sessionStorage.lastname);
-  }, []);
+    const storedSaId = sessionStorage.getItem("saId");
+    const storedFirstname = sessionStorage.getItem("firstname");
+    const storedLastname = sessionStorage.getItem("lastname");
+
+    if (!storedSaId) {
+      router.push("/");
+    } else {
+      setSaId(storedSaId);
+      setFirstname(storedFirstname);
+      setLastname(storedLastname);
+      setIsLoading(false);
+    }
+  }, [router]);
 
   useEffect(() => {
     if (saId !== null) {
@@ -63,8 +75,13 @@ const TrackTime = () => {
     const currentDayName = new Date().toLocaleString("en-US", {
       weekday: "long",
     });
-    const todaySchedule = schedules.find(
-      (schedule) => schedule.day_names === currentDayName
+    // const todaySchedule = schedules.find(
+    //   (schedule) => schedule.day_names === currentDayName
+    // );
+
+      // Find the schedule for today
+      const todaySchedule = schedules.find(
+        (schedule) => schedule.day_names.includes(currentDayName)
     );
 
     if (todaySchedule) {
@@ -173,16 +190,6 @@ const TrackTime = () => {
     setTimeOut(event.target.value);
   };
 
-  const logout = () => {
-    const confirmLogout = window.confirm("Are you sure to log out?");
-    if (confirmLogout) {
-      sessionStorage.removeItem("saId");
-      sessionStorage.removeItem("firstname");
-      sessionStorage.removeItem("lastname");
-      router.push("/");
-    }
-  };
-
   const convertTo24HourFormat = (time) => {
     const [timePart, modifier] = time.split(" ");
     let [hours, minutes] = timePart.split(":");
@@ -190,6 +197,10 @@ const TrackTime = () => {
     if (modifier === "AM" && hours === "12") hours = "00";
     return `${hours}:${minutes}`;
   };
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <>
