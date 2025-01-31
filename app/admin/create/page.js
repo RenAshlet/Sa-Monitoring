@@ -169,8 +169,24 @@ const Create = () => {
     }
   };
 
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredSa = getAllSa.filter((sa) => {
+    const firstName = sa.firstname ? sa.firstname.toLowerCase() : "";
+    const lastName = sa.lastname ? sa.lastname.toLowerCase() : "";
+    const query = searchQuery ? searchQuery.toLowerCase() : "";
+
+    return firstName.includes(query) || lastName.includes(query);
+  });
+
   if (isLoading) {
-    return null;
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+      </div>
+    );
   }
 
   return (
@@ -268,6 +284,8 @@ const Create = () => {
             </Modal>
           )}
 
+          <h3>Student Assistant</h3>
+
           <Button
             variant="primary"
             className="mb-1"
@@ -283,6 +301,12 @@ const Create = () => {
               <h5 className="mb-0">Student Assistant Schedule</h5>
             </Card.Header>
             <Card.Body>
+              <Form.Control
+                type="search"
+                placeholder="Search student assistant"
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="mb-3"
+              />
               <Table responsive striped bordered hover className="mb-0">
                 <thead className="bg-light">
                   <tr>
@@ -294,7 +318,7 @@ const Create = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {getAllSa.map((sa, index) => (
+                  {filteredSa.map((sa, index) => (
                     <tr key={index}>
                       <td>{sa.sa_fullname}</td>
                       <td>{sa.day_names}</td>

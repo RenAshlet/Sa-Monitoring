@@ -83,7 +83,7 @@ const AssignSchedule = () => {
     ) {
       setSelectedDays((prev) => [...prev, selectedDay]);
     }
-    setDays(""); // Reset the select value
+    setDays("");
   };
 
   const handleStartTimeChange = (event) => {
@@ -107,7 +107,7 @@ const AssignSchedule = () => {
 
     const jsonData = {
       saId: saId,
-      dayIds: selectedDays.map((day) => day.day_id), // Ensure the key matches backend expectation
+      dayIds: selectedDays.map((day) => day.day_id),
       startTime: convertTo24HourFormat(startTime),
       endTime: convertTo24HourFormat(endTime),
       dutyHours: dutyHours,

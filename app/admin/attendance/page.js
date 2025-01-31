@@ -59,6 +59,9 @@ const Attendance = () => {
   const handleCloseModal = () => setShowModal(false);
   const handleShowModal = () => setShowModal(true);
 
+  //--------------- Filter State ---------------//
+  const [filterStatus, setFilterStatus] = useState("All"); // Default to show all records
+
   const retrieveAllSaTimeInTrack = async () => {
     const url = "http://localhost/nextjs/api/sa-monitoring/admin.php";
 
@@ -133,6 +136,14 @@ const Attendance = () => {
     }
   };
 
+  //--------------- Filter Logic ---------------//
+  const filteredData = getAllSaTimeIn.filter((timeIn) => {
+    if (filterStatus === "All") {
+      return true;
+    }
+    return timeIn.status === filterStatus;
+  });
+
   if (isLoading) {
     return null;
   }
@@ -199,6 +210,19 @@ const Attendance = () => {
         <Container fluid style={{ flex: 1, padding: "20px" }}>
           <h2>Attendance Review</h2>
 
+          {/* Filter Dropdown */}
+          <Form.Select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="mb-3"
+            style={{ width: "200px" }}
+          >
+            <option value="All">All</option>
+            <option value="Present">Present</option>
+            <option value="Late">Late</option>
+            <option value="Absent">Absent</option>
+          </Form.Select>
+
           <Table striped bordered hover responsive className="table-custom">
             <thead className="table-primary">
               <tr>
@@ -214,7 +238,7 @@ const Attendance = () => {
               </tr>
             </thead>
             <tbody>
-              {getAllSaTimeIn.length === 0 ? (
+              {filteredData.length === 0 ? (
                 <tr>
                   <td
                     colSpan="10"
@@ -229,7 +253,7 @@ const Attendance = () => {
                   </td>
                 </tr>
               ) : (
-                getAllSaTimeIn.map((timeIn, index) => {
+                filteredData.map((timeIn, index) => {
                   return (
                     <tr key={index}>
                       <td>{timeIn.formatted_date}</td>

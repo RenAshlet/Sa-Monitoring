@@ -28,7 +28,7 @@ const TrackTime = () => {
   const [getSaTimeInTrack, setGetSaTimeInTrack] = useState([]);
   const [currentDaySchedule, setCurrentDaySchedule] = useState(null); // selected sa_duty_schedule
 
-  const [timeOut, setTimeOut] = useState("");
+  //const [timeOut, setTimeOut] = useState("");
 
   useEffect(() => {
     const storedSaId = sessionStorage.getItem("saId");
@@ -79,9 +79,9 @@ const TrackTime = () => {
     //   (schedule) => schedule.day_names === currentDayName
     // );
 
-      // Find the schedule for today
-      const todaySchedule = schedules.find(
-        (schedule) => schedule.day_names.includes(currentDayName)
+    // Find the schedule for today
+    const todaySchedule = schedules.find((schedule) =>
+      schedule.day_names.includes(currentDayName)
     );
 
     if (todaySchedule) {
@@ -158,7 +158,6 @@ const TrackTime = () => {
 
     const jsonData = {
       trackId: getSaTimeInTrack[0].track_id,
-      timeOut: convertTo24HourFormat(timeOut),
       dutyScheduleId: currentDaySchedule,
     };
 
@@ -186,17 +185,17 @@ const TrackTime = () => {
     }
   };
 
-  const handleTimeOut = (event) => {
-    setTimeOut(event.target.value);
-  };
+  // const handleTimeOut = (event) => {
+  //   setTimeOut(event.target.value);
+  // };
 
-  const convertTo24HourFormat = (time) => {
-    const [timePart, modifier] = time.split(" ");
-    let [hours, minutes] = timePart.split(":");
-    if (modifier === "PM" && hours !== "12") hours = parseInt(hours, 10) + 12;
-    if (modifier === "AM" && hours === "12") hours = "00";
-    return `${hours}:${minutes}`;
-  };
+  // const convertTo24HourFormat = (time) => {
+  //   const [timePart, modifier] = time.split(" ");
+  //   let [hours, minutes] = timePart.split(":");
+  //   if (modifier === "PM" && hours !== "12") hours = parseInt(hours, 10) + 12;
+  //   if (modifier === "AM" && hours === "12") hours = "00";
+  //   return `${hours}:${minutes}`;
+  // };
 
   if (isLoading) {
     return null;
@@ -277,19 +276,19 @@ const TrackTime = () => {
               <Button
                 variant="secondary"
                 onClick={SaTimeOut}
-                disabled={!currentDaySchedule || !timeOut}
+                disabled={!currentDaySchedule}
               >
                 Time out
               </Button>
             </Col>
-            <Form.Group controlId="endTime" className="mt-3">
+            {/* <Form.Group controlId="endTime" className="mt-3">
               <Form.Label>End Time</Form.Label>
               <Form.Control
                 type="time"
-                value={timeOut}
-                onChange={handleTimeOut}
+                value={}
+                onChange={}
               />
-            </Form.Group>
+            </Form.Group> */}
           </Row>
 
           <Table striped bordered hover responsive className="table-custom">

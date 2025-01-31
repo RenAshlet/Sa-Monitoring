@@ -1,9 +1,17 @@
 "use client";
+import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useCallback } from "react";
 import * as Icon from "react-bootstrap-icons";
-import { Navbar, Nav, Container, Button, Spinner } from "react-bootstrap";
 import { useLogout } from "@/components/admin/logout";
+import { useEffect, useState, useCallback } from "react";
+import {
+  Navbar,
+  Nav,
+  Container,
+  Table,
+  Button,
+  Spinner,
+} from "react-bootstrap";
 
 const Dashboard = () => {
   const [adminId, setAdminId] = useState(null);
@@ -14,7 +22,6 @@ const Dashboard = () => {
   const logout = useLogout();
   const router = useRouter();
 
-  // Fetch session data once on component mount
   useEffect(() => {
     const storedAdminId = sessionStorage.getItem("adminId");
     const storedFirstname = sessionStorage.getItem("firstname");
@@ -24,8 +31,8 @@ const Dashboard = () => {
       router.push("/");
     } else {
       setAdminId(storedAdminId);
-      setFirstname(storedFirstname || "");
-      setLastname(storedLastname || "");
+      setFirstname(storedFirstname);
+      setLastname(storedLastname);
       setIsLoading(false);
     }
   }, [router]);
@@ -46,7 +53,6 @@ const Dashboard = () => {
 
   return (
     <>
-      {/* Top Navbar */}
       <Navbar expand="lg" bg="dark" variant="dark" className="px-3">
         <Navbar.Brand href="#">Admin Page</Navbar.Brand>
         <Button
@@ -62,9 +68,7 @@ const Dashboard = () => {
         </h6>
       </Navbar>
 
-      {/* Main Layout */}
       <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
-        {/* Sidebar */}
         <div
           style={{
             width: isSidebarVisible ? "250px" : "0",
@@ -101,7 +105,6 @@ const Dashboard = () => {
         {/* Main Content */}
         <Container fluid style={{ flex: 1, padding: "20px" }}>
           <h2>Admin Dashboard</h2>
-          {/* Add your main content here */}
         </Container>
       </div>
     </>
