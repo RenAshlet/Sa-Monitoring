@@ -68,6 +68,8 @@ const Create = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("defaultpass");
 
+  const [searchQuery, setSearchQuery] = useState("");
+
   const [alertShow, setAlertShow] = useState({
     show: false,
     variant: "success",
@@ -169,15 +171,9 @@ const Create = () => {
     }
   };
 
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const filteredSa = getAllSa.filter((sa) => {
-    const firstName = sa.firstname ? sa.firstname.toLowerCase() : "";
-    const lastName = sa.lastname ? sa.lastname.toLowerCase() : "";
-    const query = searchQuery ? searchQuery.toLowerCase() : "";
-
-    return firstName.includes(query) || lastName.includes(query);
-  });
+  const filteredSa = getAllSa.filter((sa) =>
+    sa.sa_fullname.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   if (isLoading) {
     return (
